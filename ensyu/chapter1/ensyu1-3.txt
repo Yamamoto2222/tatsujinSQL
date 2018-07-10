@@ -1,2 +1,38 @@
-a
-s
+演習1-3 　ORDER BYでソート列を作る
+
+【問題文】
+最後に考えてもらう問題は、ちょっと小手先のテクニックに属するものですが、時として使う必要に迫られることがあるので紹介します。
+　演習問題1-①で利用したGreatestsテーブルに対して、普通に「SELECT key FROM Greatests ORDER BY key;」というクエリを実行すると、key列をアルファベット順にソートした形で結果が表示されます。
+では問題です。その表示結果を、「B-A-D-C」の順番に並び替えるクエリを考えてください。
+この順番に特に規則性はありません。できたらほかの適当な順番でも試してみてください。
+
+SELECT * FROM Greatests ORDER BY key;y
+ key | x | y | z
+-----+---+---+---
+ A   | 1 | 2 | 3
+ B   | 5 | 5 | 2
+ C   | 4 | 7 | 1
+ D   | 3 | 3 | 8
+(4 行)
+
+【解答】
+SELECT
+ key
+ , CASE WHEN key = 'B' THEN 1
+        WHEN key = 'A' THEN 2
+        WHEN key = 'D' THEN 3
+        WHEN key = 'C' THEN 4
+   ELSE 0 END as sort_key
+FROM Greatests
+ORDER BY sort_key;
+
+■実行結果
+ key | sort_key
+-----+----------
+ B   |        1
+ A   |        2
+ D   |        3
+ C   |        4
+(4 行)
+
+
