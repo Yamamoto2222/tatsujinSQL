@@ -23,5 +23,27 @@ SELECT * FROM DistrictProducts;
 
 
 【解答】
+SELECT 
+  district
+  , name
+  , RANK() OVER(PARTITION BY district ORDER BY price DESC) as rank
+ FROM DistrictProducts;
 
+
+■実行結果
+
+ district |  name  | rank
+----------+--------+------
+ 関西     | レモン |    1
+ 関西     | スイカ |    2
+ 関西     | りんご |    3
+ 関東     | パイン |    1
+ 関東     | レモン |    1
+ 関東     | りんご |    1
+ 関東     | ぶどう |    4
+ 東北     | みかん |    1
+ 東北     | りんご |    2
+ 東北     | ぶどう |    2
+ 東北     | レモン |    4
+(11 行)
 
