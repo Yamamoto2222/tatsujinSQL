@@ -1,0 +1,54 @@
+演習5-3　完全外部結合とMERGE文
+
+【問題文】
+「完全外部結合」のところで、「完全外部結合は情報を欠落させないという点でMERGE文によく似ている」と述べました。ここでは、そのMERGE文について練習しておきましょう。
+MERGE文は、SQL:2003で標準化された非常に新しい機能ですが、二つのテーブルの情報を一か所にまとめることができるため、入力元のデータソースが複数に分散していて、それを一つのテーブルにまとめたい場合などに大きな威力を発揮します。
+
+ここでは、本文でも使ったClass_AA、Class_BBのテーブルを再び使いましょう。（Bクラスのデータを少し変えています。）
+
+■Class_AA
+SELECT * FROM Class_AA;
+ id |  name
+----+--------
+ 1  | 田中
+ 2  | 鈴木
+ 3  | 伊集院
+(3 行)
+
+■Class_BB
+SELECT * FROM Class_BB;
+ id |  name
+----+--------
+ 1  | 田中
+ 2  | 鈴木
+ 4  | 西園寺
+(3 行)
+
+いま、Class_BBのデータをClass_AAへマージすることにします。すると、求める結果は次のようになります。
+
+■マージ後のClass_AA
+ id |  name
+----+--------
+ 1  | 田中
+ 2  | 鈴木
+ 3  | 内海
+ 4  | 西園寺
+
+識別子（id）列をキーにClass_AAテーブルを検索して、行があればUPDATE、なければINSERTという動作を行います。
+その結果、たまたま名前が一致した1番の「田中」と、Class_BBに存在しなかった3番の「伊集院」については変更なし、キーは一致するけど名前が違う2番の「鈴木」は「内海」に更新され、Class_AAに存在しなかった新版の西園寺が追加されるわけです。
+
+
+【解答】
+■SQL
+MERGE INTO Class_AA  A
+    USING (SELECT *
+             FROM Class_BB ) B
+      ON (A.id = B.id)
+    WHEN MATCHED THEN
+        UPDATE SET A.name = B.name
+    WHEN NOT MATCHED THEN
+        INSERT (id, name) VALUES B.id, B.name);
+
+■実行結果
+Postgres では「Merge文」は対応していないため、確認できず
+
