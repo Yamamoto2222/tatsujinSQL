@@ -20,30 +20,119 @@ SELECT * FROM DistrictProducts;
  関西     | りんご |    20
 (11 行)
 
+例によって、値段の高い順にランキングして、同順位が続いたら順位を飛び石にします。結果は次のようになります。1つのテーブル全体の順位ではなく、小さな部分集合に切り分けた中での順位を求めるのがポイントです。
+
+ district |  name  | price | rank_1
+----------+--------+-------+------
+ 関西     | レモン |    70 |    1
+ 関西     | スイカ |    30 |    2
+ 関西     | りんご |    20 |    3
+ 関東     | パイン |   100 |    1
+ 関東     | レモン |   100 |    1
+ 関東     | りんご |   100 |    1
+ 関東     | ぶどう |    70 |    4
+ 東北     | みかん |   100 |    1
+ 東北     | りんご |    50 |    2
+ 東北     | ぶどう |    50 |    2
+ 東北     | レモン |    30 |    4
+ 
+解き方は、やはりOLAP関数と自己結合を使う二通りがあります（スカラ・サブクエリと結合を別解答と考えれば3通り）。それぞれ考えてみてください。
+
 
 
 【解答】
+●OLAP関数を使用する場合
 SELECT 
   district
   , name
-  , RANK() OVER(PARTITION BY district ORDER BY price DESC) as rank
+  , price
+  , RANK() OVER(PARTITION BY district ORDER BY price DESC) as rank_1
  FROM DistrictProducts;
 
 
 ■実行結果
-
- district |  name  | rank
-----------+--------+------
- 関西     | レモン |    1
- 関西     | スイカ |    2
- 関西     | りんご |    3
- 関東     | パイン |    1
- 関東     | レモン |    1
- 関東     | りんご |    1
- 関東     | ぶどう |    4
- 東北     | みかん |    1
- 東北     | りんご |    2
- 東北     | ぶどう |    2
- 東北     | レモン |    4
+ district |  name  | price | rank_1
+----------+--------+-------+--------
+ 関西     | レモン |    70 |      1
+ 関西     | スイカ |    30 |      2
+ 関西     | りんご |    20 |      3
+ 関東     | パイン |   100 |      1
+ 関東     | レモン |   100 |      1
+ 関東     | りんご |   100 |      1
+ 関東     | ぶどう |    70 |      4
+ 東北     | みかん |   100 |      1
+ 東北     | りんご |    50 |      2
+ 東北     | ぶどう |    50 |      2
+ 東北     | レモン |    30 |      4
 (11 行)
 
+
+●スカラ・サブクエリを使用する場合
+SELECT 
+  origin.district
+  , origin.name
+  , origin.price
+  , ( SELECT COUNT(rank_table.price)
+      FROM DistrictProducts as rank_table
+      WHERE rank_table.price > origin.price
+        AND rank_table.name = origin.name
+    ) + 1 as rank_1
+ FROM DistrictProducts as origin;
+
+
+■実行結果
+ district |  name  | price | rank_1
+----------+--------+-------+--------
+ 東北     | みかん |   100 |      1
+ 東北     | りんご |    50 |      2
+ 東北     | ぶどう |    50 |      2
+ 東北     | レモン |    30 |      3
+ 関東     | レモン |   100 |      1
+ 関東     | パイン |   100 |      1
+ 関東     | りんご |   100 |      1
+ 関東     | ぶどう |    70 |      1
+ 関西     | レモン |    70 |      2
+ 関西     | スイカ |    30 |      1
+ 関西     | りんご |    20 |      3
+(11 行)
+
+
+●結合を使用する場合
+SELECT 
+  origin.district
+  , origin.name
+  , origin.price
+  , COUNT(rank_table.name) + 1 as rank_1
+FROM DistrictProducts as origin
+  LEFT JOIN DistrictProducts as rank_table
+  ON origin.district = rank_table.district
+  AND origin.price < rank_table.price
+GROUP BY origin.district, origin.name
+ORDER BY origin.district, rank_1;
+
+
+■実行結果
+ district |  name  | price | rank_1
+----------+--------+-------+--------
+ 関西     | レモン |    70 |      1
+ 関西     | スイカ |    30 |      2
+ 関西     | りんご |    20 |      3
+ 関東     | りんご |   100 |      1
+ 関東     | パイン |   100 |      1
+ 関東     | レモン |   100 |      1
+ 関東     | ぶどう |    70 |      4
+ 東北     | みかん |   100 |      1
+ 東北     | りんご |    50 |      2
+ 東北     | ぶどう |    50 |      2
+ 東北     | レモン |    30 |      4
+(11 行)
+
+
+SELECT P1.district, P1.name,
+       MAX(P1.price) AS price, 
+       COUNT(P2.name) +1 AS rank_1
+  FROM DistrictProducts P1 LEFT OUTER JOIN DistrictProducts P2
+    ON  P1.district = P2.district
+   AND P1.price < P2.price
+ GROUP BY P1.district, P1.name
+ ORDER BY P1.district, rank_1;
