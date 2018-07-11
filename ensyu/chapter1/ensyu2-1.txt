@@ -25,5 +25,23 @@ SELECT * FROM Products;
 
 
 【解答】
+SELECT 
+  original.name as name_1
+  , connect.name as name_2
+FROM
+  Products as original
+  , Products as connect
+WHERE
+  original.name <= connect.name;
 
+■実行結果
+ name_1 | name_2
+--------+--------
+ りんご | りんご
+ みかん | みかん
+ みかん | りんご
+ バナナ | バナナ
+ バナナ | みかん
+ バナナ | りんご
+(6 行)
 
