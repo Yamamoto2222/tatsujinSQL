@@ -1,0 +1,61 @@
+演習5-1　結合が先か、集約が先か
+
+【問題文】
+「クロス表で入れ子の表側を作る」（P.87）では、集約してDATAビューとMASTERビューの対応を一対一にしてから結合を行いました。これはこれで分かりやすい方法ですが、パフォーマンスを考慮するならば、中間ビューを二つ作るのは無駄が多い方法です。
+そこで、この中間ビューをなるべく減らすように、コードを改良してください。
+
+P.87内容
+■子供テーブル
+SELECT * FROM Personnel_2;
+ employee | child_1 | child_2 | child_3
+----------+---------+---------+---------
+ 赤井     | 一郎    | 二郎    | 三郎
+ 工藤     | 春子    | 夏子    |
+ 鈴木     | 夏子    |         |
+ 吉田     |         |         |
+(4 行)
+
+■子供情報VIEW
+SELECT * FROM Children;
+ child
+-------
+ 夏子
+ 春子
+ 三郎
+ 二郎
+ 一郎
+(6 行)
+
+■クロス表作成SQL
+SELECT EMP.employee, CHILDREN.child
+  FROM Personnel_2 EMP
+       LEFT OUTER JOIN Children
+    ON CHILDREN.child IN (EMP.child_1, EMP.child_2, EMP.child_3);
+
+■実行結果
+ employee | child
+----------+-------
+ 赤井     | 三郎
+ 赤井     | 二郎
+ 赤井     | 一郎
+ 工藤     | 夏子
+ 工藤     | 春子
+ 鈴木     | 夏子
+ 吉田     |
+(7 行)
+
+
+
+【解答】
+■SQL
+
+
+■実行結果
+ shop | my_item_cnt | diff_cnt
+------+-------------+----------
+ 東京 |           3 |        0
+ 仙台 |           3 |        0
+ 大阪 |           2 |        1
+(3 行)
+
+
