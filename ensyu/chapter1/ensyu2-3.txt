@@ -25,5 +25,46 @@ SELECT * FROM DistrictProducts;
 
 
 【解答】
+■SQL実行前
+SELECT * FROM DistrictProducts2;
+ district |  name  | price | ranking
+----------+--------+-------+---------
+ 東北     | みかん |   100 |
+ 東北     | りんご |    50 |
+ 東北     | ぶどう |    50 |
+ 東北     | レモン |    30 |
+ 関東     | レモン |   100 |
+ 関東     | パイン |   100 |
+ 関東     | りんご |   100 |
+ 関東     | ぶどう |    70 |
+ 関西     | レモン |    70 |
+ 関西     | スイカ |    30 |
+ 関西     | りんご |    20 |
 
+■SQL
+UPDATE DistrictProducts2 as origin
+SET ranking = (
+  SELECT 
+    COUNT(rank_table.price) + 1
+  FROM DistrictProducts2 as rank_table
+    WHERE origin.district = rank_table.district
+    AND origin.price < rank_table.price
+);
+
+■SQL実行後
+
+ district |  name  | price | ranking
+----------+--------+-------+---------
+ 東北     | みかん |   100 |       1
+ 東北     | りんご |    50 |       2
+ 東北     | ぶどう |    50 |       2
+ 東北     | レモン |    30 |       4
+ 関東     | レモン |   100 |       1
+ 関東     | パイン |   100 |       1
+ 関東     | りんご |   100 |       1
+ 関東     | ぶどう |    70 |       4
+ 関西     | レモン |    70 |       1
+ 関西     | スイカ |    30 |       2
+ 関西     | りんご |    20 |       3
+(11 行)
 
